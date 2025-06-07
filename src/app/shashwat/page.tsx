@@ -1,4 +1,4 @@
-'use client'
+"use client";
 // VoiceToText.jsx
 import { useRef, useState } from "react";
 import { FaMicrophone, FaStop } from "react-icons/fa";
@@ -32,7 +32,6 @@ export default function VoiceToText() {
   const [voiceName, setVoiceName] = useState("en-IN-Female");
   // STT input language selection state
   const [sttLanguage, setSttLanguage] = useState("en-US");
-  // State for typed question
   const [typedQuestion, setTypedQuestion] = useState("");
   const [typedLoading, setTypedLoading] = useState(false);
 
