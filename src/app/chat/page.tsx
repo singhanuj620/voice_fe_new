@@ -86,8 +86,8 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="h-screen w-screen flex justify-center items-center bg-gray-100 dark:bg-black transition-colors">
-      <div className="w-full max-w-4xl mx-auto min-h-96 border border-dashed bg-white dark:bg-black border-neutral-200 dark:border-neutral-800 rounded-lg shadow-lg">
+    <div className="min-h-screen w-full flex justify-center items-center px-2">
+      <div className="w-full max-w-4xl mx-auto min-h-96 border border-dashed border-neutral-800 rounded-lg shadow-lg">
         <div className="flex flex-col justify-center items-center h-full py-12 gap-8">
           {/* Mic Button */}
           <motion.button

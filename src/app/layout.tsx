@@ -17,7 +17,7 @@ export default async function RootLayout({
   const session = await auth();
   return (
     <html lang="en">
-      <body className={`antialiased`}>
+      <body className=" min-h-screen w-full !bg-black !text-white antialiased">
         <Navbar session={session} signOutAction={signOutAction} />
         {children}
       </body>

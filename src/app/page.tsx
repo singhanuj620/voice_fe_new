@@ -6,9 +6,9 @@ import { uploadRedirect } from "@/components/ui/server-actions";
 
 const HomePage = () => {
   return (
-    <div>
-      <div className="h-[50%] flex justify-center flex-col items-center gap-4">
-        <div className="h-20vh w-[30vw] -mb-4 mt-4">
+    <div className="pt-16">
+      <div className="h-[50%] flex justify-center flex-col items-center gap-4 mt-[45px] ml-[50px] sm:mt-12 sm:ml-8 md:mt-16 md:ml-16">
+        <div className="h-20vh w-[90vw] sm:w-[60vw] md:w-[40vw] lg:w-[30vw] -mb-4 mt-4">
           <Image
             src={codeinter}
             alt="Code Inter Logo"
