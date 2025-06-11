@@ -35,6 +35,9 @@ export default function VoiceToText() {
   const [typedQuestion, setTypedQuestion] = useState("");
   const [typedLoading, setTypedLoading] = useState(false);
 
+  // When user selects input language, set STT language accordingly
+  // (UI code for language selection already exists)
+
   const startRecording = async () => {
     setTranscript("");
     setApiResponse(null);
@@ -85,9 +88,7 @@ export default function VoiceToText() {
       try {
         const formData = new FormData();
         formData.append("file", blob, "voice.webm");
-        formData.append("accent_code", accentCode);
-        formData.append("voice_name", voiceName);
-        formData.append("stt_language_code", sttLanguage); // Pass STT language to backend
+        // Do NOT append stt_language_code
         const res = await fetch(`${BE_BASE_URL}/voice-to-text`, {
           method: "POST",
           body: formData,
@@ -150,6 +151,7 @@ export default function VoiceToText() {
     try {
       const formData = new FormData();
       formData.append("file", uploadFile);
+      // Do NOT append stt_language_code
       const res = await fetch(`${BE_BASE_URL}/upload-report-file`, {
         method: "POST",
         body: formData,
