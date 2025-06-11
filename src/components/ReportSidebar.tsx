@@ -61,69 +61,73 @@ export default function ReportSidebar({ onReportChange }: ReportSidebarProps) {
   };
 
   return (
-    <aside className="w-64 h-full bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 p-4 overflow-y-auto">
-      <h2 className="text-lg font-semibold mb-4">My Reports</h2>
-      {loading ? (
-        <div>Loading...</div>
-      ) : reports && reports.length === 0 ? (
-        <div className="text-neutral-500">No reports found.</div>
-      ) : (
-        <ul className="space-y-2">
-          {reports &&
-            reports.map((report, index) => (
-              <li
-                key={index}
-                className="flex items-center justify-between group cursor-pointer text-sm px-2 py-1"
-              >
-                <button
-                  className={`flex-1 text-left px-3 py-2 rounded-lg transition-colors cursor-pointer break-words whitespace-normal overflow-hidden text-ellipsis ${
-                    selectedReportId === report
-                      ? "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 font-bold"
-                      : "hover:bg-neutral-100 dark:hover:bg-neutral-800"
+    <aside className="w-[25vw] min-w-60 max-w-xl h-[calc(100vh-64px)] bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-800 border-r border-neutral-800 shadow-lg p-6 flex flex-col pt-0" style={{ overflow: "hidden", top: 64, position: "fixed", left: 0 }}>
+      <h2 className="text-base font-semibold mb-6 text-neutral-100 tracking-wide flex items-center gap-2">
+        <span className="inline-block w-2 h-6 bg-blue-600 rounded-full mr-2"></span>
+        My Reports
+      </h2>
+      <div className="flex-1 pr-2 overflow-y-auto scrollbar-thin scrollbar-thumb-neutral-700 scrollbar-track-neutral-900" style={{ overflowX: "hidden" }}>
+        {loading ? (
+          <div className="text-neutral-400 text-center py-8 animate-pulse">
+            Loading...
+          </div>
+        ) : reports && reports.length === 0 ? (
+          <div className="text-neutral-500 text-center py-8">
+            No reports found.
+          </div>
+        ) : (
+          <ul className="space-y-2 pb-2">
+            {reports &&
+              reports.map((reportId: string, index: number) => (
+                <li
+                  key={index}
+                  className={`flex items-center group rounded-lg transition-colors px-2 py-1 ${
+                    selectedReportId === reportId
+                      ? "bg-blue-900 border border-blue-700 shadow-inner z-10 relative"
+                      : "hover:bg-neutral-800/80 border border-transparent"
                   }`}
                   style={{
-                    minWidth: "0",
-                    maxWidth: "160px",
-                    width: "160px",
-                    display: "inline-block",
+                    zIndex: selectedReportId === reportId ? 10 : undefined,
                   }}
-                  onClick={() => handleReportClick(report)}
                 >
-                  {report}
-                </button>
-                {selectedReportId === report && (
                   <button
-                    className={
-                      "ml-2 text-xs rounded transition-colors flex items-center justify-center bg-blue-100 dark:bg-blue-900 text-white font-bold"
-                    }
+                    className={`flex-1 text-left px-3 py-2 rounded-lg transition-colors cursor-pointer break-words whitespace-normal overflow-hidden text-ellipsis font-medium text-sm tracking-tight focus:outline-none focus:ring-0 focus:border-0 ${
+                      selectedReportId === reportId
+                        ? "text-blue-200 font-bold shadow"
+                        : "text-neutral-200 hover:bg-neutral-800/60"
+                    }`}
                     style={{
-                      width: "32px",
-                      height: "32px",
-                      padding: 0,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
+                      minWidth: 0,
+                      maxWidth: 200,
+                      width: 200,
+                      display: "inline-block",
+                      border: "none",
+                      boxShadow: "none",
+                    }}
+                    onClick={() => handleReportClick(reportId)}
+                  >
+                    {reportId}
+                  </button>
+                  <button
+                    className={`ml-3 p-2 rounded-lg transition-colors flex items-center justify-center border border-blue-800 bg-blue-800/80 hover:bg-blue-700/90 shadow ${
+                      selectedReportId === reportId
+                        ? "opacity-100"
+                        : "opacity-60 group-hover:opacity-100"
+                    }`}
+                    style={{
+                      width: 32,
+                      height: 32,
                     }}
                     title="Download report"
-                    onClick={() => handleDownload(report)}
+                    onClick={() => handleDownload(reportId)}
                   >
-                    <span
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        width: "100%",
-                        height: "100%",
-                      }}
-                    >
-                      <FiDownload size={20} color="#fff" />
-                    </span>
+                    <FiDownload size={16} color="#dbeafe" />
                   </button>
-                )}
-              </li>
-            ))}
-        </ul>
-      )}
+                </li>
+              ))}
+          </ul>
+        )}
+      </div>
     </aside>
   );
 }

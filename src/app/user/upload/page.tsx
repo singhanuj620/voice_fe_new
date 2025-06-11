@@ -45,9 +45,9 @@ export default function FileUploadDemo() {
         setUploadMessage("Upload complete.");
       }
       setIsLoading(false);
-      // setTimeout(() => {
-      //   window.location.href = "/user/chat";
-      // }, 2000);
+      setTimeout(() => {
+        window.location.href = "/user/chat";
+      }, 2000);
     } catch (e) {
       setIsLoading(false);
       setUploadMessage(
@@ -57,8 +57,8 @@ export default function FileUploadDemo() {
   };
 
   return (
-    <div className="h-full w-screen flex justify-center items-center mt-6">
-      <div className="w-full max-w-4xl mx-auto min-h-96 border border-dashed bg-white dark:bg-black border-neutral-200 dark:border-neutral-800 rounded-lg mt-[140px] md:mt-24">
+    <div className="h-screen w-screen flex justify-center items-center">
+      <div className="w-full max-w-4xl mx-auto max-h-[90vh] border border-dashed bg-white dark:bg-black border-neutral-200 dark:border-neutral-800 rounded-lg">
         <FileUpload
           onChange={handleFileUpload}
           isLoading={isLoading}

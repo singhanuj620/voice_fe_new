@@ -21,6 +21,8 @@ export default function ChatPage() {
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [chatHistory, setChatHistory] = useState<any[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
+  const [typedQuestion, setTypedQuestion] = useState("");
+  const [typedLoading, setTypedLoading] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunks = useRef<Blob[]>([]);
   const searchParams = useSearchParams();
@@ -121,6 +123,39 @@ export default function ChatPage() {
     }
   };
 
+  // Handler for submitting typed question
+  const handleTypedSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!typedQuestion.trim()) return;
+    setTypedLoading(true);
+    setAudioUrl(null);
+    try {
+      const formData = new FormData();
+      formData.append("text", typedQuestion);
+      formData.append("userId", userId || "user");
+      formData.append("reportId", reportId || "default_report");
+      const res = await fetch(`${BE_BASE_URL}/text-to-voice`, {
+        method: "POST",
+        body: formData,
+      });
+      if (!res.ok) throw new Error("Failed to get audio response");
+      const audioBlob = await res.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+      setAudioUrl(audioUrl);
+      setTimeout(() => {
+        const audio = document.querySelector(
+          'audio[src="' + audioUrl + '"]'
+        ) as HTMLAudioElement | null;
+        if (audio) audio.play();
+      }, 100);
+      setTypedQuestion("");
+      await fetchChatHistory();
+    } catch {
+      alert("Error receiving audio");
+    }
+    setTypedLoading(false);
+  };
+
   // Fetch userId from session
   useEffect(() => {
     const fetchSession = async () => {
@@ -156,101 +191,173 @@ export default function ChatPage() {
   }, [reportId, userId, BE_BASE_URL, router]);
 
   return (
-    <div className="h-screen w-screen max-w-full flex bg-gray-100 dark:bg-black transition-colors overflow-x-hidden">
-      {/* Sidebar */}
-      <ReportSidebar onReportChange={() => setAudioUrl(null)} />
-      {/* Main Chat Area */}
-      <div className="flex-1 h-full flex justify-center items-start w-full max-w-full overflow-x-hidden">
-        <div className="w-full min-h-96 border border-dashed bg-white dark:bg-black border-neutral-200 dark:border-neutral-800 rounded-lg shadow-lg flex flex-col m-0 box-border max-w-full">
-          <div className="flex flex-col justify-center items-center flex-1 gap-8 relative w-full max-w-full">
-            {/* Chat History */}
-            <div
-              className="w-full max-h-[90vh] flex flex-col gap-2 overflow-y-auto overflow-x-hidden scroll-smooth custom-scrollbar bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl shadow-inner p-4 flex-1 box-border max-w-full"
-              ref={chatHistoryRef}
-            >
-              {chatHistory.length === 0 ? (
-                <div className="text-neutral-400 text-center text-sm">
-                  No chat history for this report.
-                </div>
-              ) : (
-                chatHistory.map((msg, idx) => (
-                  <div
-                    key={idx}
-                    className={`px-4 py-2 rounded-lg font-medium text-sm max-w-[80%] break-words shadow-sm transition-colors duration-200 ${
-                      msg.sender !== "ai"
-                        ? "bg-blue-500/10 dark:bg-blue-400/10 self-end text-blue-900 dark:text-blue-200 border border-blue-200 dark:border-blue-700"
-                        : "bg-neutral-200/80 dark:bg-neutral-800/80 self-start text-neutral-900 dark:text-neutral-200 border border-neutral-300 dark:border-neutral-700"
-                    }`}
-                    style={{ wordBreak: "break-word", whiteSpace: "pre-wrap" }}
-                  >
-                    {msg.text}
+    <div className="h-screen w-screen max-w-full flex flex-col bg-gray-100 dark:bg-black transition-colors overflow-x-hidden">
+      {/* Navbar Spacer */}
+      <div className="h-16 w-full flex-shrink-0" />
+      <div className="flex flex-1 w-full h-full overflow-hidden">
+        {/* Sidebar - 25% width */}
+        <div className="w-1/4 min-w-[250px] max-w-[400px] h-full overflow-y-auto">
+          <ReportSidebar onReportChange={() => setAudioUrl(null)} />
+        </div>
+        {/* Main Chat Area - 75% width */}
+        <div className="w-3/4 h-full flex justify-center items-start max-w-full overflow-hidden">
+          <div className="w-full min-h-96 border border-dashed bg-white dark:bg-black border-neutral-200 dark:border-neutral-800 rounded-lg shadow-lg flex flex-col m-0 box-border max-w-full h-full">
+            <div className="flex flex-col justify-center items-center flex-1 gap-8 relative w-full max-w-full h-full">
+              {/* Chat History */}
+              <div
+                className="w-full h-full flex flex-col gap-4 overflow-y-auto scroll-smooth custom-scrollbar bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl shadow-inner p-4 box-border max-w-full pb-28 text-sm md:text-[15px]"
+                ref={chatHistoryRef}
+              >
+                {chatHistory.length === 0 ? (
+                  <div className="text-neutral-400 text-center text-xs md:text-sm">
+                    No chat history for this report.
                   </div>
-                ))
-              )}
-            </div>
-            {/* Spinner while loading */}
-            <AnimatePresence>
-              {isLoading && (
-                <motion.div
-                  className="flex items-center justify-center mt-4"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                >
-                  <svg
-                    className="animate-spin h-8 w-8 text-blue-500"
-                    viewBox="0 0 24 24"
+                ) : (
+                  chatHistory.map((msg, idx) => (
+                    <div
+                      key={idx}
+                      className={`flex items-end gap-2 mb-2 ${
+                        msg.sender !== "ai" ? "justify-end" : "justify-start"
+                      }`}
+                    >
+                      {/* AI Avatar */}
+                      {msg.sender === "ai" && (
+                        <div className="flex-shrink-0 w-9 h-9 rounded-full bg-gradient-to-br from-blue-400 to-blue-700 flex items-center justify-center text-white font-bold text-lg shadow-md border-2 border-blue-300 dark:border-blue-700">
+                          <span role="img" aria-label="AI">
+                            🤖
+                          </span>
+                        </div>
+                      )}
+                      {/* Chat Bubble */}
+                      <div
+                        className={`relative px-5 py-3 rounded-2xl font-medium max-w-[70%] break-words shadow-md transition-colors duration-200 text-xs md:text-xs lg:text-sm ${
+                          msg.sender !== "ai"
+                            ? "bg-blue-500/90 dark:bg-blue-400/20 text-white dark:text-blue-100 border border-blue-200 dark:border-blue-700 rounded-br-none"
+                            : "bg-neutral-200/90 dark:bg-neutral-800/90 text-neutral-900 dark:text-neutral-200 border border-neutral-300 dark:border-neutral-700 rounded-bl-none"
+                        }`}
+                        style={{
+                          wordBreak: "break-word",
+                          whiteSpace: "pre-wrap",
+                        }}
+                      >
+                        {msg.sender !== "ai" ? (
+                          msg.text && msg.text.trim() !== "" ? (
+                            msg.text
+                          ) : (
+                            <span className="text-red-500 italic">
+                              Message empty. Please re-ask your question.
+                            </span>
+                          )
+                        ) : msg.text && msg.text.trim() !== "" ? (
+                          msg.text
+                        ) : (
+                          <span className="text-red-500 italic">
+                            AI response empty. Please retry or repeat your
+                            question.
+                          </span>
+                        )}
+                      </div>
+                      {/* Human Avatar */}
+                      {msg.sender !== "ai" && (
+                        <div className="flex-shrink-0 w-9 h-9 rounded-full bg-gradient-to-br from-pink-400 to-red-500 flex items-center justify-center text-white font-bold text-lg shadow-md border-2 border-pink-300 dark:border-red-700">
+                          <span role="img" aria-label="User">
+                            🧑
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+              {/* Spinner while loading */}
+              <AnimatePresence>
+                {isLoading && (
+                  <motion.div
+                    className="flex items-center justify-center mt-4"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
                   >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                      fill="none"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8v8z"
-                    />
-                  </svg>
+                    <svg
+                      className="animate-spin h-8 w-8 text-blue-500"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        fill="none"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 0 0 8-8v8z"
+                      />
+                    </svg>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Audio Player */}
+              {audioUrl && !isLoading && (
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 30 }}
+                  transition={{ duration: 0.5, ease: "easeOut" }}
+                  className="w-full mt-12 max-w-md flex justify-center items-center bg-gradient-to-br from-neutral-900 to-neutral-800 rounded-2xl shadow-2xl p-6 border border-neutral-700"
+                >
+                  <audio
+                    controls
+                    autoPlay
+                    src={audioUrl}
+                    className="w-full h-14 bg-transparent text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 shadow-none"
+                    style={{
+                      accentColor: "#60a5fa",
+                      background: "transparent",
+                      borderRadius: "0.75rem",
+                      minHeight: 0,
+                    }}
+                  >
+                    Your browser does not support the audio element.
+                  </audio>
                 </motion.div>
               )}
-            </AnimatePresence>
-
-            {/* Audio Player */}
-            {audioUrl && !isLoading && (
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 30 }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
-                className="w-full mt-12 max-w-md flex justify-center items-center bg-gradient-to-br from-neutral-900 to-neutral-800 rounded-2xl shadow-2xl p-6 border border-neutral-700"
-              >
-                <audio
-                  controls
-                  autoPlay
-                  src={audioUrl}
-                  className="w-full h-14 bg-transparent text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 shadow-none"
-                  style={{
-                    accentColor: "#60a5fa",
-                    background: "transparent",
-                    borderRadius: "0.75rem",
-                    minHeight: 0,
-                  }}
-                >
-                  Your browser does not support the audio element.
-                </audio>
-              </motion.div>
-            )}
+            </div>
           </div>
         </div>
       </div>
       {/* Fixed Mic Bar at Screen Bottom */}
       <div className="fixed bottom-0 left-0 w-[75%] ml-[25%] flex justify-end z-50 pointer-events-none">
         <div className="w-full max-w-4xl bg-white/90 dark:bg-neutral-900/90 border-t border-neutral-200 dark:border-neutral-700 shadow-xl px-0 py-3 flex items-center justify-center pointer-events-auto rounded-b-xl">
+          {/* Text input for typed question */}
+          <form
+            onSubmit={handleTypedSubmit}
+            className="flex flex-row gap-3 items-center w-full max-w-xl px-4"
+            style={{ flex: 1 }}
+          >
+            <input
+              type="text"
+              value={typedQuestion}
+              onChange={(e) => setTypedQuestion(e.target.value)}
+              placeholder="Type your question..."
+              className="flex-1 px-4 py-2 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-base focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all shadow-sm"
+              disabled={typedLoading || isLoading}
+              style={{ minWidth: 0 }}
+            />
+            <button
+              type="submit"
+              className="px-5 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-semibold text-base shadow-md transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+              disabled={typedLoading || isLoading || !typedQuestion.trim()}
+              style={{ whiteSpace: "nowrap" }}
+            >
+              {typedLoading ? "Processing..." : "Ask"}
+            </button>
+          </form>
+          {/* Mic button */}
           <motion.button
             whileTap={{ scale: 0.9 }}
             animate={
@@ -269,7 +376,7 @@ export default function ChatPage() {
             onClick={handleMicClick}
             aria-label={isRecording ? "Stop recording" : "Start recording"}
             disabled={isLoading}
-            style={{ pointerEvents: "auto" }}
+            style={{ pointerEvents: "auto", marginLeft: 12 }}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
