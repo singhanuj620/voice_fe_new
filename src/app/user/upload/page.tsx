@@ -43,11 +43,11 @@ export default function FileUploadDemo() {
       console.log("Upload response:", data);
       if (data && data.message) {
         setUploadMessage("Upload complete.");
+        setTimeout(() => {
+          window.location.href = "/user/chat";
+        }, 2000);
       }
       setIsLoading(false);
-      setTimeout(() => {
-        window.location.href = "/user/chat";
-      }, 2000);
     } catch (e) {
       setIsLoading(false);
       setUploadMessage(
@@ -57,8 +57,8 @@ export default function FileUploadDemo() {
   };
 
   return (
-    <div className="h-screen w-screen flex justify-center items-center">
-      <div className="w-full max-w-4xl mx-auto max-h-[90vh] border border-dashed bg-white dark:bg-black border-neutral-200 dark:border-neutral-800 rounded-lg">
+    <div className="h-screen w-screen flex justify-center items-center bg-black">
+      <div className="w-full max-w-4xl mx-auto max-h-[90vh] border border-dashed bg-black border-neutral-200 dark:border-neutral-800 rounded-lg">
         <FileUpload
           onChange={handleFileUpload}
           isLoading={isLoading}

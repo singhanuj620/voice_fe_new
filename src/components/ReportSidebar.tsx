@@ -48,7 +48,7 @@ export default function ReportSidebar({ onReportChange }: ReportSidebarProps) {
     };
     fetchSessionAndReports();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onReportChange]);
+  }, []); // Only run once on mount
 
   const handleReportClick = (id: string) => {
     setSelectedReportId(id);
